@@ -1,24 +1,29 @@
 #include "get_path.h"
 
-char *which(char *command, struct pathelement *p)
-{
-  char cmd[64], *ch;
+char *which(char *command, struct pathelement *path){
+  char cmd[64], *pathFound;
   int  found;
 
   found = 0;
-  while (p) {       
-    sprintf(cmd, "%s/%s", p->element, command);
+  while (path) {
+
+    sprintf(cmd, "%s/%s", path->element, command);
+
+    //checks if the command is executable.
     if (access(cmd, X_OK) == 0) {
       found = 1;
       break;
     }
-    p = p->next;
+
+    path = path->next;
   }
+
   if (found) {
-    ch = malloc(strlen(cmd)+1);
-    strcpy(ch, cmd);
-    return ch;
-  }
-  else
+    pathFound = malloc(strlen(cmd)+1);
+    strcpy(pathFound, cmd);
+    return pathFound;
+  }else{
     return (char *) NULL;
+  }
+
 }
