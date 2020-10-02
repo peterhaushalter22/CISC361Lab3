@@ -40,12 +40,12 @@ int main(int argc, char **argv, char **envp){
 		}
 
 
-		//used to print it
 		/*
+		//used to print arguments
 		for (int index = 0; index < argumentIndex; index++){
 			printf("arg[%d] = %s\n", index, arguments[index]);
 		}
-		*/
+		//*/
 
         if (strcmp(arguments[0], "pwd") == 0) { // built-in command pwd 
 			printf("Executing built-in [pwd]\n");
@@ -66,13 +66,14 @@ int main(int argc, char **argv, char **envp){
 
 		  		p = get_path();
 
-				/*
+				///*
+				//used to print argumetns in which
 		  		tmp = p;
 		  		while (tmp) {
 		    		printf("path [%s]\n", tmp->element);
 		    		tmp = tmp->next;
                 }
-				*/
+				//*/
 
                 cmd = which(arguments[1], p);
 
