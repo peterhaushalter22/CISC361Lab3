@@ -47,12 +47,14 @@ int main(int argc, char **argv, char **envp){
 		}
 		//*/
 
-        if (strcmp(arguments[0], "pwd") == 0) { // built-in command pwd 
+        if (strcmp(arguments[0], "pwd") == 0) {
+			char    *workingDirectory;
+
 			printf("Executing built-in [pwd]\n");
-	        ptr = getcwd(NULL, 0);
-            printf("%s\n", ptr);
-            free(ptr);
-	    }else if (strcmp(arguments[0], "which") == 0) { // built-in command which
+	        workingDirectory = getcwd(NULL, 0);
+            printf("%s\n", workingDirectory);
+            free(workingDirectory);
+	    }else if (strcmp(arguments[0], "which") == 0) {
 		  		struct pathelement *p, *tmp;
             	char *cmd;
 
@@ -66,7 +68,7 @@ int main(int argc, char **argv, char **envp){
 
 		  		p = get_path();
 
-				///*
+				/*
 				//used to print argumetns in which
 		  		tmp = p;
 		  		while (tmp) {
@@ -95,7 +97,7 @@ int main(int argc, char **argv, char **envp){
 			if((pid = fork()) < 0) {
 				printf("fork error");
 		  	}else if (pid == 0) {
-				execlp(buffer, buffer, (char *)0);
+				execlp(buffer, buffer, (char *)NULL);
 				printf("couldn't execute: %s", buffer);
 				exit(127);
 			}
