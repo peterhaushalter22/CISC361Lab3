@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include "sh.h"
 
+
 int main(int argc, char **argv, char **envp){
 	char	buffer[MAXLINE];
 	char    *arguments[MAXARGS];
@@ -55,7 +56,7 @@ int main(int argc, char **argv, char **envp){
             printf("%s\n", workingDirectory);
             free(workingDirectory);
 	    }else if (strcmp(arguments[0], "which") == 0) {
-		  		struct pathelement *p, *tmp;
+		  		struct pathelement *path, *tmp;
             	char *cmd;
 
 				printf("Executing built-in [which]\n");
@@ -66,18 +67,9 @@ int main(int argc, char **argv, char **envp){
 		    		goto nextprompt;
                 }
 
-		  		p = get_path();
+		  		path = get_path();
 
-				/*
-				//used to print argumetns in which
-		  		tmp = p;
-		  		while (tmp) {
-		    		printf("path [%s]\n", tmp->element);
-		    		tmp = tmp->next;
-                }
-				//*/
-
-                cmd = which(arguments[1], p);
+                cmd = which(arguments[1], path);
 
                 if (cmd) {
 		    		printf("%s\n", cmd);
@@ -86,12 +78,51 @@ int main(int argc, char **argv, char **envp){
 					printf("%s: Command not found\n", arguments[1]);
 				}
 
-		  		while (p) {
-		     		tmp = p;
-		     		p = p->next;
+		  		while (path) {
+		     		tmp = path;
+		     		path = path->next;
 		     		free(tmp->element);
 		     		free(tmp);
                 }
+
+		}else if(strcmp(arguments[0], "where") == 0){
+
+			struct pathelement *path, *tmp;
+            char **pathFound = NULL;
+
+			printf("Executing built-in [where]\n");
+
+			//continues if no agruments are given to to which
+	  		if (arguments[1] == NULL) {	
+				printf("where: Too few arguments.\n");
+		    	goto nextprompt;
+            }
+
+			path = get_path();
+
+            pathFound = where(arguments[1], path);
+
+            if (pathFound){
+                
+				int index = 0;
+				while(pathFound[index] != NULL) {
+					printf("%s\n", pathFound[index]);
+		 			free(pathFound[index]);
+					index++;
+            	}
+
+				free(pathFound);
+
+            }else{
+				printf("%s: Command not found\n", arguments[1]);
+			}
+
+			while (path) {
+				tmp = path;
+		 		path = path->next;
+		 		free(tmp->element);
+		 		free(tmp);
+            }
 
 		}else{
 			if((pid = fork()) < 0) {
