@@ -8,7 +8,7 @@ void printenv(char ** environment, int maxArguments, char ** arguments){
             index++;
         }
 
-    }else if(arguments[1] != NULL){
+    }else if(arguments[2] != NULL){
         printf("%s\n", getenv(arguments[2]));
     }
 }
