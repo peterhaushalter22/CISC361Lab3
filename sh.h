@@ -4,7 +4,7 @@ int pid;
 char *which(char *command, struct pathelement *pathlist);
 char **where(char *command, struct pathelement *pathlist);
 void list(char *dir);
-void printenv(char **envp);
+void printenv(char **enviroment);
 
 #define PROMPTMAX 64
 #define MAXARGS   16

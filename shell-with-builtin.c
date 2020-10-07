@@ -124,6 +124,8 @@ int main(int argc, char **argv, char **envp){
 		 		free(tmp);
             }
 
+		}else if (strcmp(arguments[0], "printenv") == 0) {
+			printenv(envp);
 		}else{
 			if((pid = fork()) < 0) {
 				printf("fork error");
