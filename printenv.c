@@ -1,22 +1,14 @@
 #include  "sh.h"
 
-void printenv(char ** environment){
-    
-    if(environment == NULL){ 
-            printf("Environment null");       
-            return;
-    }else if(environment != NULL){
-        int index = 0;
+void printenv(char ** environment, int maxArguments, char ** arguments){
+    int index = 0;
+    if(arguments[1] == NULL){
         while(environment[index]){
             printf("%s\n", environment[index]);
-            //printf("%s=%s\n", environment[index], getenv(environment[index]));
             index++;
         }
 
-        return;
-    }
-    else{
-        printf("ERROR");
-        return;
+    }else if(arguments[1] != NULL){
+        printf("%s\n", getenv(arguments[2]));
     }
 }

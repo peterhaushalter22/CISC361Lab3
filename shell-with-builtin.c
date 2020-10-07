@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <glob.h>
 #include "sh.h"
 
 
@@ -10,11 +11,10 @@ int main(int argc, char **argv, char **envp){
 	char	buffer[MAXLINE];
 	char    *arguments[MAXARGS];
 	char    *ptr;
-    char    *token;
 	pid_t	pid;
-	int	status, argumentIndex;
+	int	status;
 
-	printf("[%s]>> ", getenv("HOME"));
+	printf("[%s]>> ", getcwd(NULL, 0));
 	while (fgets(buffer, MAXLINE, stdin) != NULL) {
 
 		//continues if user just enters "\n".
@@ -25,32 +25,40 @@ int main(int argc, char **argv, char **envp){
 			buffer[strlen(buffer) - 1] = 0; 
 		}
 
-		argumentIndex = 0;
-        token = strtok(buffer, " ");
-        while (token != NULL && argumentIndex < MAXARGS){
-	  		arguments[argumentIndex] = token;
-	 		argumentIndex++;                
+		int argumentIndex = 0;
+		glob_t globPaths;
+  		char **globOutput;
+        char *token = strtok(buffer, " ");
+
+        while (token != NULL && argumentIndex < MAXARGS){					   
+			if (glob(token, 0, NULL, &globPaths) == 0) {
+				for (globOutput = globPaths.gl_pathv; *globOutput != NULL; globOutput++){
+					arguments[argumentIndex] = *globOutput;
+					argumentIndex++;
+				}
+			}else{
+				arguments[argumentIndex] = token;
+				argumentIndex++;
+			}
+
 			token = strtok (NULL, " ");
         }
 
 		arguments[argumentIndex] = (char *) NULL;
+
+		// for(int index = 0; index < argumentIndex; index++){
+		// 	printf("argumentIndex: %d, %s\n", index, arguments[index]);
+		// }
 
 		//continues if "blank" command.
 		if (arguments[0] == NULL){
 			goto nextprompt;
 		}
 
-
-		/*
-		//used to print arguments
-		for (int index = 0; index < argumentIndex; index++){
-			printf("arg[%d] = %s\n", index, arguments[index]);
-		}
-		//*/
-		 if (strcmp(arguments[0], "exit") == 0) {
-			 printf("You have exited the shell.\n");
-			 return 1;
-		 }else if (strcmp(arguments[0], "which") == 0) {
+		if (strcmp(arguments[0], "exit") == 0) {
+			printf("You have exited the shell.\n");
+			return 1;
+		}else if (strcmp(arguments[0], "which") == 0) {
 		  		struct pathelement *path, *tmp;
             	char *cmd;
 
@@ -129,13 +137,21 @@ int main(int argc, char **argv, char **envp){
 	    }else if(strcmp(arguments[0], "pid") == 0){
 			printf("%d\n",getpid());
 		}else if (strcmp(arguments[0], "printenv") == 0) {
-			printenv(envp);
+			printenv(envp, argumentIndex, arguments);
 		}else{
+
+			struct pathelement *path, *tmp;
+			char *cmd;
+
 			if((pid = fork()) < 0) {
 				printf("fork error");
 		  	}else if (pid == 0) {
-				execlp(buffer, buffer, (char *)NULL);
-				printf("couldn't execute: %s", buffer);
+				//execlp(arguments[0], buffer, NULL);
+
+				path = get_path();
+				cmd = which(arguments[0], path);
+				execve(cmd, arguments, NULL);
+				printf("couldn't execute: %s\n", arguments[0]);
 				exit(127);
 			}
 
@@ -146,10 +162,18 @@ int main(int argc, char **argv, char **envp){
 
             // if (WIFEXITED(status)) S&R p. 239 
             //     printf("child terminates with (%d)\n", WEXITSTATUS(status));
+
+			// while (path) {
+			// 	tmp = path;
+	     	// 	path = path->next;
+	     	// 	free(tmp->element);
+		 	// 	free(tmp);
+            // }
         }
 
         nextprompt:
-		printf("[%s]>> ", getenv("HOME"));
+		globfree(&globPaths);
+		printf("[%s]>> ", getcwd(NULL, 0));
 	}
 
 	exit(0);
