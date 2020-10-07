@@ -138,6 +138,11 @@ int main(int argc, char **argv, char **envp){
 			printf("%d\n",getpid());
 		}else if (strcmp(arguments[0], "printenv") == 0) {
 			printenv(envp, argumentIndex, arguments);
+		}
+		else if (strcmp(arguments[0], "cd") == 0) {
+			printf("Executing built-in [cd]\n");
+			char *workingDirectory = getcwd(NULL, 0);
+			cd(workingDirectory);
 		}else{
 
 			struct pathelement *path, *tmp;
