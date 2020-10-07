@@ -129,8 +129,14 @@ int main(int argc, char **argv, char **envp){
 	    }else if(strcmp(arguments[0], "pid") == 0){
 			printf("%d\n",getpid());
 		}else if (strcmp(arguments[0], "printenv") == 0) {
-			printenv(envp);
-		}else{
+			printenv(envp,arguments);
+			
+		}else if(strcmp(arguments[0], "setenv") == 0){
+			if(arguments[1]== NULL){
+			setenv(envp,arguments);
+		}
+
+		else{
 			if((pid = fork()) < 0) {
 				printf("fork error");
 		  	}else if (pid == 0) {
