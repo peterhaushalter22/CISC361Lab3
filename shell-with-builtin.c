@@ -50,14 +50,7 @@ int main(int argc, char **argv, char **envp){
 		 if (strcmp(arguments[0], "exit") == 0) {
 			 printf("You have exited the shell.\n");
 			 return 1;
-		 }else if (strcmp(arguments[0], "pwd") == 0) {
-			char    *workingDirectory;
-
-			printf("Executing built-in [pwd]\n");
-	        workingDirectory = getcwd(NULL, 0);
-            printf("%s\n", workingDirectory);
-            free(workingDirectory);
-	    }else if (strcmp(arguments[0], "which") == 0) {
+		 }else if (strcmp(arguments[0], "which") == 0) {
 		  		struct pathelement *path, *tmp;
             	char *cmd;
 
@@ -126,6 +119,15 @@ int main(int argc, char **argv, char **envp){
 		 		free(tmp);
             }
 
+		}else if (strcmp(arguments[0], "pwd") == 0) {
+			char    *workingDirectory;
+
+			printf("Executing built-in [pwd]\n");
+	        workingDirectory = getcwd(NULL, 0);
+            printf("%s\n", workingDirectory);
+            free(workingDirectory);
+	    }else if(strcmp(arguments[0], "pid") == 0){
+			printf("%d\n",getpid());
 		}else if (strcmp(arguments[0], "printenv") == 0) {
 			printenv(envp);
 		}else{
