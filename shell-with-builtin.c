@@ -137,12 +137,23 @@ int main(int argc, char **argv, char **envp){
 	    }else if(strcmp(arguments[0], "pid") == 0){
 			printf("%d\n",getpid());
 		}else if (strcmp(arguments[0], "printenv") == 0) {
+<<<<<<< HEAD
 			printenv(envp, argumentIndex, arguments);
 		}else{
 
 			struct pathelement *path, *tmp;
 			char *cmd;
 
+=======
+			printenv(envp,arguments);
+			
+		}else if(strcmp(arguments[0], "setenv") == 0){
+			if(arguments[1]== NULL){
+			setenv(envp,arguments);
+		}
+
+		else{
+>>>>>>> ef2a4e51ad1142993b1311c2a02fe726752b2644
 			if((pid = fork()) < 0) {
 				printf("fork error");
 		  	}else if (pid == 0) {
