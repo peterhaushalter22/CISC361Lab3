@@ -1,4 +1,6 @@
 #include "sh.h"
+#include <stdio.h>
+#include <stdlib.h>
 void setenv(char ** environment, char  *arguments[] ){
     
     if(environment == NULL){ 
@@ -18,7 +20,7 @@ void setenv(char ** environment, char  *arguments[] ){
         environment = NULL;
     }
     else if(arguments[2] != NULL){
-
+    setenv(3);
     }else{
         printf("ERROR");
         return;
