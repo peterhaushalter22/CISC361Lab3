@@ -2,7 +2,8 @@
 
 void printenv(char ** environment){
     
-    if(environment == NULL){        
+    if(environment == NULL){ 
+            printf("Environment null");       
             return;
     }else if(environment != NULL){
         int index = 0;

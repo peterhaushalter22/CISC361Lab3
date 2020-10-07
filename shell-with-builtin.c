@@ -14,7 +14,7 @@ int main(int argc, char **argv, char **envp){
 	pid_t	pid;
 	int	status, argumentIndex;
 
-	printf(">> ");
+	printf("[%s]>> ", getenv("HOME"));
 	while (fgets(buffer, MAXLINE, stdin) != NULL) {
 
 		//continues if user just enters "\n".
@@ -47,8 +47,10 @@ int main(int argc, char **argv, char **envp){
 			printf("arg[%d] = %s\n", index, arguments[index]);
 		}
 		//*/
-
-        if (strcmp(arguments[0], "pwd") == 0) {
+		 if (strcmp(arguments[0], "exit") == 0) {
+			 printf("You have exited the shell.\n");
+			 return 1;
+		 }else if (strcmp(arguments[0], "pwd") == 0) {
 			char    *workingDirectory;
 
 			printf("Executing built-in [pwd]\n");
@@ -145,7 +147,7 @@ int main(int argc, char **argv, char **envp){
         }
 
         nextprompt:
-		printf(">> ");
+		printf("[%s]>> ", getenv("HOME"));
 	}
 
 	exit(0);
