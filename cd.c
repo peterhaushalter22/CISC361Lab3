@@ -2,6 +2,9 @@
 #include <stdlib.h>
 
 void cd (char *dir){
+
+    printf("Executing built-in [cd]\n");
+
     char *oldwd = getcwd(NULL,0);
     if(strcmp(dir,"~") == 0){
         if(chdir(getenv("HOME")) != 0){

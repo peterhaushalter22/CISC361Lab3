@@ -1,41 +1,56 @@
 #include <stdlib.h>
+#include <dirent.h>
+#include <sys/types.h>
 #include "sh.h"
-/*
-void list(char **args){
-    pathelement *direc;
+
+void list(char **arguments){
+    printf("Executing built-in list\n");
+
+    char directoryName[MAXLINE];
+    DIR *directory;
     struct dirent *d;
 
-    int i = 1;
-    while(args[i] != NULL){
-        char *adirec = calloc(MAXLINE,1);
-        printf("args[i] %s\n" , args[i]);
+    for(int index = 0; arguments[index] != NULL; index++)
+        printf("arguments[%d]: %s\n",  index,  arguments[index]);
 
-        if(args[i][0] != '/'){
-            strcpy(adirect, "/");
-            
-            strcat(adirec,args[i]);
-            printf(("%s\n"),adirec);
-            direc = opendir(adirec);
+    for(int index = 1; arguments[index] != NULL; index++){
+        printf("arguments[%d]: %s",  index,  arguments[index]);
+
+        if(arguments[index][0] != '/'){
+            strcpy(directoryName, "/");
         }
-        if(direc == NULL && args[i] != NULL){
-            printf("directory not found\n");
+
+        strcat(directoryName, arguments[index]);
+        printf(("%s\n"), directoryName);
+
+        directory = opendir(directoryName);
+
+        if(directory == NULL && arguments[index] != NULL){
+            printf("Directory not found\n");
             return;
         }else{
-            while((d = readdir(direc)) != NULL){
+
+            d = readdir(directory);
+            while(d != NULL){
                 printf("a: %s\n", d->d_name);
+                d = readdir(directory);
             }
         }
+
         printf("\n");
-        i++;
-        free(adirec);
     }
-    if(args[1]== NULL){
-        direc = opendir(getcwd(NULL,0));
-        while((d = readdir(direc)) != NULL){
-            printf("%s\n", d-> d_name);
+
+    if(arguments[1] == NULL){
+        directory = opendir(getcwd(NULL, 0));
+
+        d = readdir(directory);
+        while(d != NULL){
+            printf("a: %s\n", d->d_name);
+            d = readdir(directory);
         }
     }
-    closedir(direc);
+
+    closedir(directory);
+
 }
 
-*/

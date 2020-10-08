@@ -151,15 +151,13 @@ int main(int argc, char **argv, char **envp){
 				strncpy(prompt, arguments[1], MAXARGS);
 			}
 		}else if (strcmp(arguments[0], "cd") == 0) {
-			printf("Executing built-in [cd]\n");
-		if(arguments[1] == NULL){
-			cd("~");
-		}else{
-			cd(arguments[1]);
-		}
-		// }else if (strcmp(arguments[0], "list") == 0) {
-		// 	printf("Executing built-in [list]\n");
-		// 	list(arguments);
+			if(arguments[1] == NULL){
+				cd("~");
+			}else{
+				cd(arguments[1]);
+			}
+		}else if (strcmp(arguments[0], "list") == 0) {
+			list(arguments);
 		}else{
 
 			struct pathelement *path, *tmp;
