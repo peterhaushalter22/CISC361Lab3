@@ -3,7 +3,7 @@
 
 void cd (char *dir){
     char *oldwd = getcwd(NULL,0);
-    if(strcmp(dir,"~") == 0){
+    if(strcmp(dir,"~") == 0 || dir == NULL){
         if(chdir(getenv("HOME")) != 0){
             perror("cd failed");
             return;

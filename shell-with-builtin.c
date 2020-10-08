@@ -140,7 +140,11 @@ int main(int argc, char **argv, char **envp){
 			printenv(envp, argumentIndex, arguments);
 		}else if (strcmp(arguments[0], "cd") == 0) {
 			printf("Executing built-in [cd]\n");
-			cd(arguments[1]);
+			if(arguments[1] == NULL){
+				cd("~");
+			}else{
+				cd(arguments[1]);
+			}
 		// }else if (strcmp(arguments[0], "list") == 0) {
 		// 	printf("Executing built-in [list]\n");
 		// 	list(arguments);
