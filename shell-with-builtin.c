@@ -8,13 +8,18 @@
 
 
 int main(int argc, char **argv, char **envp){
-	char	buffer[MAXLINE];
-	char    *arguments[MAXARGS];
-	char    *ptr;
+	char buffer[MAXLINE];
+	char *arguments[MAXARGS];
+	char *ptr;
+	char prompt[16];
 	pid_t	pid;
 	int	status;
 
-	printf("[%s]>> ", getcwd(NULL, 0));
+	for(int index = 0; index < MAXARGS; index++){
+		prompt[index] = '\0';
+	}
+
+	printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
 	while (fgets(buffer, MAXLINE, stdin) != NULL) {
 
 		//continues if user just enters "\n".
@@ -138,13 +143,23 @@ int main(int argc, char **argv, char **envp){
 			printf("%d\n",getpid());
 		}else if (strcmp(arguments[0], "printenv") == 0) {
 			printenv(envp, argumentIndex, arguments);
+		}else if(strcmp(arguments[0], "prompt") == 0){
+			if(arguments[1] == NULL){
+				printf("Retype a new prompt\n");
+			}else if(strcmp(arguments[1], "clear") == 0){
+				for(int index = 0; index < MAXARGS; index++){
+					prompt[index] = '\0';
+				}
+			}else{
+				strncpy(prompt, arguments[1], MAXARGS);
+			}
 		}else if (strcmp(arguments[0], "cd") == 0) {
 			printf("Executing built-in [cd]\n");
-			if(arguments[1] == NULL){
-				cd("~");
-			}else{
-				cd(arguments[1]);
-			}
+		if(arguments[1] == NULL){
+			cd("~");
+		}else{
+			cd(arguments[1]);
+		}
 		// }else if (strcmp(arguments[0], "list") == 0) {
 		// 	printf("Executing built-in [list]\n");
 		// 	list(arguments);
@@ -183,7 +198,7 @@ int main(int argc, char **argv, char **envp){
 
         nextprompt:
 		globfree(&globPaths);
-		printf("[%s]>> ", getcwd(NULL, 0));
+		printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
 	}
 
 	exit(0);
