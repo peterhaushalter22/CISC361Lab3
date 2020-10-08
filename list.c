@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include "sh.h"
-#include "get_path.h"
 /*
 void list(char **args){
     pathelement *direc;
