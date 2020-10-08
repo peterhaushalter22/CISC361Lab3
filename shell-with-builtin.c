@@ -142,7 +142,11 @@ int main(int argc, char **argv, char **envp){
 		else if (strcmp(arguments[0], "cd") == 0) {
 			printf("Executing built-in [cd]\n");
 			char *workingDirectory = getcwd(NULL, 0);
+			printf("HERE");
 			cd(workingDirectory);
+			}else if (strcmp(arguments[0], "list") == 0) {
+			printf("Executing built-in [list]\n");
+			list(arguments);
 		}else{
 
 			struct pathelement *path, *tmp;

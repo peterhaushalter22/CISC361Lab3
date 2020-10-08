@@ -1,8 +1,9 @@
 #include "sh.h"
 #include <stdlib.h>
-void cd(char *dir){
+void cd (char *dir){
  char *old = "OLDPWD";
  char *oldwd = getcwd(NULL,0);
+ printf("HERE");
  if(strcmp(dir,"") == 0){
      if(chdir(getenv("HOME"))< 0){
          perror("cd failed");
