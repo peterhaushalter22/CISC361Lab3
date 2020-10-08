@@ -136,6 +136,8 @@ int main(int argc, char **argv, char **envp){
 			pwd();
 	    }else if(strcmp(arguments[0], "pid") == 0){
 			printf("%d\n",getpid());
+		}else if(strcmp(arguments[0], "kill") == 0){
+			killProc(arguments);
 		}else if (strcmp(arguments[0], "printenv") == 0) {
 			printenv(envp, argumentIndex, arguments);
 		}else if(strcmp(arguments[0], "prompt") == 0){

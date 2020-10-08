@@ -7,6 +7,7 @@ void list(char *dir);
 void printenv(char ** environment, int maxArguments, char **arguments);
 void cd(char *cd);
 void pwd();
+void killProc(char **arguments);
 
 #define PROMPTMAX 64
 #define MAXARGS   16
