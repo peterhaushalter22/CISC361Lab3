@@ -133,12 +133,7 @@ int main(int argc, char **argv, char **envp){
             }
 
 		}else if (strcmp(arguments[0], "pwd") == 0) {
-			char    *workingDirectory;
-
-			printf("Executing built-in [pwd]\n");
-	        workingDirectory = getcwd(NULL, 0);
-            printf("%s\n", workingDirectory);
-            free(workingDirectory);
+			pwd();
 	    }else if(strcmp(arguments[0], "pid") == 0){
 			printf("%d\n",getpid());
 		}else if (strcmp(arguments[0], "printenv") == 0) {
