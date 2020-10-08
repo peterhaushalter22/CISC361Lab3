@@ -1,5 +1,6 @@
 #include "sh.h"
 #include <stdlib.h>
+/*
 void cd (char *dir){
  char *old = "OLDPWD";
  char *oldwd = getcwd(NULL,0);
@@ -26,3 +27,5 @@ void cd (char *dir){
      }
  }
 }
+
+*/

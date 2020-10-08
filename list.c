@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "sh.h"
 #include "get_path.h"
-
+/*
 void list(char **args){
     pathelement *direc;
     struct dirent *d;
@@ -38,3 +38,5 @@ void list(char **args){
     }
     closedir(direc);
 }
+
+*/
