@@ -1,4 +1,11 @@
-#include <unistd.h>
+/*
+Created by: Luke Fanizzi and Peter Haushalter
+Description: This program is the main program our shell will be running on. It controls parsing the command
+line and executing the functions. The arguments on the comand line are put into a char * so we can access
+the arguments in each program.
+*/
+
+#include <unistd.h>  //included files and libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +15,7 @@
 
 
 int main(int argc, char **argv, char **envp){
-	char buffer[MAXLINE];
+	char buffer[MAXLINE]; //declarations
 	char *arguments[MAXARGS];
 	char *ptr;
 	char prompt[16];
@@ -16,24 +23,23 @@ int main(int argc, char **argv, char **envp){
 	int	status;
 
 	for(int index = 0; index < MAXARGS; index++){
-		prompt[index] = '\0';
+		prompt[index] = '\0'; //clears prompt
 	}
 
-	printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
-	while (fgets(buffer, MAXLINE, stdin) != NULL) {
+	printf("%s [%s]>> ", prompt, getcwd(NULL, 0)); //prints prompt prefix string
+	while (fgets(buffer, MAXLINE, stdin) != NULL) { //the main program loop
 
-		//continues if user just enters "\n".
-		if (strlen(buffer) == 1 && buffer[strlen(buffer) - 1] == '\n')
+		if (strlen(buffer) == 1 && buffer[strlen(buffer) - 1] == '\n') //continues if user just enters "\n".
 		  goto nextprompt;
 
 		if (buffer[strlen(buffer) - 1] == '\n'){
 			buffer[strlen(buffer) - 1] = 0; 
 		}
 
-		int argumentIndex = 0;
+		int argumentIndex = 0; //declarations
 		glob_t globPaths;
   		char **globOutput;
-        char *token = strtok(buffer, " ");
+        char *token = strtok(buffer, " "); //sets token
 
         while (token != NULL && argumentIndex < MAXARGS){					   
 			if (glob(token, 0, NULL, &globPaths) == 0) {
@@ -140,6 +146,8 @@ int main(int argc, char **argv, char **envp){
 			killProc(arguments);
 		}else if (strcmp(arguments[0], "printenv") == 0) {
 			printenv(envp, argumentIndex, arguments);
+		}else if (strcmp(arguments[0], "setEnviroment") == 0) {
+			setEnvironment(envp, arguments);
 		}else if(strcmp(arguments[0], "prompt") == 0){
 			if(arguments[1] == NULL){
 				printf("Retype a new prompt\n");
