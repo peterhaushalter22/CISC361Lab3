@@ -1,3 +1,7 @@
+/*
+Description: This function gets the path given the path variable 
+*/
+
 #include <string.h>
 #include "get_path.h"
 

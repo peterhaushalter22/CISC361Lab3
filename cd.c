@@ -1,6 +1,8 @@
 #include "sh.h"
 #include <stdlib.h>
-
+/*
+Description: This function changes the directory based omn the amount of arguments given
+*/
 void cd (char *dir){
 
     printf("Executing built-in [cd]\n");

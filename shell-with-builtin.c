@@ -11,55 +11,73 @@ the arguments in each program.
 #include <string.h>
 #include <sys/wait.h>
 #include <glob.h>
+#include <signal.h>
 #include "sh.h"
 
+pid_t childPid = (int)NULL;
+/*
+	This function is a callback function that is used catch SIGINT.
+	Input:
+		int signalNumber - The kill signal number.
+
+*/
+void sigHandler(int signalNumber){ 
+	printf("received %d\n", signalNumber);
+	if (signalNumber == SIGINT){
+		printf("\nreceived SIGINT\n");
+
+		if(childPid != NULL){
+			kill(childPid, SIGKILL); 
+		}
+	}
+}
 
 int main(int argc, char **argv, char **envp){
 	char buffer[MAXLINE]; //declarations
 	char *arguments[MAXARGS];
 	char *ptr;
 	char prompt[16];
-	pid_t	pid;
 	int	status;
 
 	for(int index = 0; index < MAXARGS; index++){
 		prompt[index] = '\0'; //clears prompt
 	}
 
-	printf("%s [%s]>> ", prompt, getcwd(NULL, 0)); //prints prompt prefix string
-	while (fgets(buffer, MAXLINE, stdin) != NULL) { //the main program loop
+	signal(SIGINT, sigHandler);
 
-		if (strlen(buffer) == 1 && buffer[strlen(buffer) - 1] == '\n') //continues if user just enters "\n".
-		  goto nextprompt;
+	printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
+	while (fgets(buffer, MAXLINE, stdin) != NULL) {
+
+		//continues if user just enters "\n".
+		if (strlen(buffer) == 1 && buffer[strlen(buffer) - 1] == '\n'){
+			goto nextprompt;
+		}
 
 		if (buffer[strlen(buffer) - 1] == '\n'){
 			buffer[strlen(buffer) - 1] = 0; 
 		}
+ 
 
 		int argumentIndex = 0; //declarations
 		glob_t globPaths;
   		char **globOutput;
-        char *token = strtok(buffer, " "); //sets token
+        char *token = strtok(buffer, " "); // tokenizes the command line for parsing
 
-        while (token != NULL && argumentIndex < MAXARGS){					   
-			if (glob(token, 0, NULL, &globPaths) == 0) {
+        while (token != NULL && argumentIndex < MAXARGS){	 //This loop is responsible for parsing the command line				   
+			if (glob(token, 0, NULL, &globPaths) == 0) { // and storing the arguments in a charcter array
 				for (globOutput = globPaths.gl_pathv; *globOutput != NULL; globOutput++){
 					arguments[argumentIndex] = *globOutput;
-					argumentIndex++;
+					argumentIndex++; //increments index of new array
 				}
 			}else{
-				arguments[argumentIndex] = token;
-				argumentIndex++;
+				arguments[argumentIndex] = token; //stores argument
+				argumentIndex++; //increments index
 			}
 
-			token = strtok (NULL, " ");
+			token = strtok (NULL, " "); 
         }
 
-		arguments[argumentIndex] = (char *) NULL;
-
-		// for(int index = 0; index < argumentIndex; index++){
-		// 	printf("argumentIndex: %d, %s\n", index, arguments[index]);
-		// }
+		arguments[argumentIndex] = (char *) NULL; 
 
 		//continues if "blank" command.
 		if (arguments[0] == NULL){
@@ -80,14 +98,12 @@ int main(int argc, char **argv, char **envp){
 		    		printf("which: Too few arguments.\n");
 		    		goto nextprompt;
                 }
-
-		  		path = get_path();
-
+		  		path = get_path();  //gets path
                 cmd = which(arguments[1], path);
 
                 if (cmd) {
 		    		printf("%s\n", cmd);
-                    free(cmd);
+                    free(cmd);  //free memory 
                 }else{
 					printf("%s: Command not found\n", arguments[1]);
 				}
@@ -125,17 +141,17 @@ int main(int argc, char **argv, char **envp){
 					index++;
             	}
 
-				free(pathFound);
+				free(pathFound);  // frees memory
 
             }else{
-				printf("%s: Command not found\n", arguments[1]);
+				printf("%s: Command not found\n", arguments[1]); // prints if command is not found
 			}
 
 			while (path) {
 				tmp = path;
 		 		path = path->next;
 		 		free(tmp->element);
-		 		free(tmp);
+		 		free(tmp); 
             }
 
 		}else if (strcmp(arguments[0], "pwd") == 0) {
@@ -159,6 +175,7 @@ int main(int argc, char **argv, char **envp){
 				strncpy(prompt, arguments[1], MAXARGS);
 			}
 		}else if (strcmp(arguments[0], "cd") == 0) {
+			//I did this because cd function does not like argument[1] being NULL.
 			if(arguments[1] == NULL){
 				cd("~");
 			}else{
@@ -171,25 +188,26 @@ int main(int argc, char **argv, char **envp){
 			struct pathelement *path, *tmp;
 			char *cmd;
 
-			if((pid = fork()) < 0) {
-				printf("fork error");
-		  	}else if (pid == 0) {
-				//execlp(arguments[0], buffer, NULL);
+			childPid = fork();
+
+
+			if(childPid < 0) {
+				perror("fork error");
+		  	}else if (childPid == 0) {
+				//child
 
 				path = get_path();
 				cmd = which(arguments[0], path);
 				execve(cmd, arguments, NULL);
-				printf("couldn't execute: %s\n", arguments[0]);
+				execve(arguments[0], arguments, NULL);
+				perror("couldn't execute command");
 				exit(127);
 			}
 
-		  /* parent */
-			if ((pid = waitpid(pid, &status, 0)) < 0){
-				printf("waitpid error");
+		  	/* parent */
+			if ((childPid = waitpid(childPid, &status, 0)) < 0){
+				perror("waitpid error");
 			}
-
-            // if (WIFEXITED(status)) S&R p. 239 
-            //     printf("child terminates with (%d)\n", WEXITSTATUS(status));
 
 			// while (path) {
 			// 	tmp = path;
@@ -204,5 +222,5 @@ int main(int argc, char **argv, char **envp){
 		printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
 	}
 
-	exit(0);
+	exit(0); //exits program
 }

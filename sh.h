@@ -1,3 +1,7 @@
+/*
+Description: This file contains function definitions and definitioins of important values
+*/
+
 #include "get_path.h"
 
 int pid;

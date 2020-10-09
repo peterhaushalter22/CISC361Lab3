@@ -1,6 +1,11 @@
 #include "get_path.h"
 #include <string.h>
-
+/*
+    This function returns the paths to where the command lies.
+    Input:
+        char * command - This is the string command that is being found.
+        struct pathelement *path - This is the path where the where command will search for.
+*/
 char **where(char *command, struct pathelement *path){
     char aPath[16][64];
     char **pathsFound;
