@@ -181,9 +181,20 @@ int main(int argc, char **argv, char **envp){
 			}else{
 				cd(arguments[1]);
 			}
-		}else if (strcmp(arguments[0], "list") == 0) {
-			list(arguments);
-		}else{
+		}else if (strcmp(arguments[1], "list") == 0) {
+			list(arguments);  
+		
+		    }else if (strcmp(arguments[1], ">") == 0) {
+
+			}else if (strcmp(arguments[1], ">&") == 0) {
+
+			}else if (strcmp(arguments[1], ">>") == 0) {
+
+			}else if (strcmp(arguments[1], ">>&") == 0) {
+
+			}else if (strcmp(arguments[1], ">>&") == 0) {
+
+			}else{
 
 			struct pathelement *path, *tmp;
 			char *cmd;
