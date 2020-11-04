@@ -37,7 +37,7 @@ int main(int argc, char **argv, char **envp){
 	char *arguments[MAXARGS];
 	char *ptr;
 	char prompt[16];
-	int	status, fd[2];
+	int	status, fd[2], saved_STD_Out = dup(1);
 
 	for(int index = 0; index < MAXARGS; index++){
 		prompt[index] = '\0'; //clears prompt
@@ -84,130 +84,98 @@ int main(int argc, char **argv, char **envp){
 			goto nextprompt;
 		}
 
-		// printf("%d\n", argumentIndex);
-		// for(int index = 0; index < argumentIndex; index++){
-		// 	printf("argument[%d]: %s\n", index, arguments[index]);
-		// }
+		struct pathelement *path;
+		char *cmd;
 
-		// struct pathelement *path;
-		// char *cmd;
+		int pipeIndex = 0;
+		while (arguments[pipeIndex] != NULL){
+			if (strcmp(arguments[pipeIndex], "|&") == 0){
 
-		// int index = 0;
-		// while (arguments[index] != NULL){
-		// 	if (strcmp(arguments[index], "|&") == 0){
+				pipe(fd);
+				pid = fork();
 
-		// 		index++;
-		// 		pipe(fd);
+				if (pid < 0){
+					perror("fork error");
+				}else if (pid == 0){
+					//child
+					dup2(fd[0], 0);
+					close(fd[1]);
 
-		// 		pid = fork();
+					path = get_path();
+					cmd = which(arguments[pipeIndex + 1], path);
+					execve(cmd, &arguments[pipeIndex + 1], NULL);
+					perror("couldn't execute command");
+					exit(127);
+				}else{
+					//parent
+					dup2(fd[1],1);
+					dup2(fd[1],2);
+					close(fd[0]);
+				}
 
-		// 		if (pid < 0){
-		// 			perror("fork error");
-		// 		}else if (pid == 0){
-		// 			//child
+				break;
+			}else if (strcmp(arguments[pipeIndex], "|") == 0){
 
-		// 			close(0);
-		// 			dup(fd[0]);
-		// 			close(fd[1]);
+				pipe(fd);
+				pid = fork();
 
-		// 			path = get_path();
-		// 			cmd = which(arguments[index], path);
+				if (pid < 0){
+					perror("fork error");
+				}else if (pid == 0){
+					//child
+					dup2(fd[0], 0);
+					close(fd[1]);
 
-		// 			//execve("/bin", &arguments[index], NULL);
-		// 			//execve("/usr/bin", &arguments[index], NULL);
+					path = get_path();
+					cmd = which(arguments[pipeIndex + 1], path);
+					execve(cmd, &arguments[pipeIndex + 1], NULL);
+					perror("couldn't execute command");
+					exit(127);
+				}else{
+					//parent
+					dup2(fd[1],1);
+					close(fd[0]);
+				}
 
-		// 			execve(cmd, &arguments[index], NULL);
-		// 			perror("couldn't execute command");
-		// 			exit(127);
-		// 		}else{
-		// 			close(1);
-		// 			dup(fd[1]);
-		// 			close(fd[0]);
-		// 		}
+				break;
+			}
 
-		// 		//normalPipe(arguments[0]);
-		// 		break;
-		// 	}else if (strcmp(arguments[index], "|") == 0){
-		// 		pipe(fd);
-		// 		index++;
-
-		// 		pid = fork();
-
-		// 		if (pid < 0){
-		// 			perror("fork error");
-		// 		}else if (pid == 0){
-		// 			//child
-
-		// 			dup2(fd[0], 0);
-		// 			close(fd[1]);
-
-		// 			path = get_path();
-		// 			cmd = which(arguments[index], path);
-
-
-		// 			//execve("/bin", &arguments[index], NULL);
-		// 			//execve("/usr/bin", &arguments[index], NULL);
-
-		// 			printf("%s", arguments[index]);
-		// 			execve(cmd, &arguments[index], NULL);
-		// 			perror("couldn't execute command");
-		// 			exit(127);
-		// 		}else{
-		// 			dup2(fd[1],1);
-
-		// 			close(fd[0]);
-
-		// 			waitpid(pid, &status, 0);
-		// 			close(fd[1]);
-		// 			close(1);
-		// 			printf("I got here?");
-		// 			return;
-		// 		}
-
-		// 		//pipeWithError(arguments[0]);
-		// 		break;
-		// 	}
-
-		// 	index++;
-		// }
+			pipeIndex++;
+		}
 		
 		if (strcmp(arguments[0], "exit") == 0) {
 			printf("You have exited the shell.\n");
 			return 1;
 		}else if (strcmp(arguments[0], "which") == 0) {
-		  		struct pathelement *path, *tmp;
-            	char *cmd;
+		  	struct pathelement *path, *tmp;
+            char *cmd;
 
-				printf("Executing built-in [which]\n");
+			//continues if no agruments are given to to which
+		  	if (arguments[1] == NULL) {
+		    	printf("which: Too few arguments.\n");
+		    	goto nextprompt;
+            }
+		  	path = get_path();  //gets path
+            cmd = which(arguments[1], path);
 
-				//continues if no agruments are given to to which
-		  		if (arguments[1] == NULL) {
-		    		printf("which: Too few arguments.\n");
-		    		goto nextprompt;
-                }
-		  		path = get_path();  //gets path
-                cmd = which(arguments[1], path);
+            if (cmd) {
+				printf("%s\n", cmd);
+                free(cmd);
+            }else{
+				printf("%s: Command not found\n", arguments[1]);
+			}
 
-                if (cmd) {
-		    		printf("%s\n", cmd);
-                    free(cmd);  //free memory 
-                }else{
-					printf("%s: Command not found\n", arguments[1]);
-				}
-
-		  		while (path) {
-		     		tmp = path;
-		     		path = path->next;
-		     		free(tmp->element);
-		     		free(tmp);
-                }
+		  	while (path) {
+		 		tmp = path;
+		 		path = path->next;
+		 		free(tmp->element);
+		 		free(tmp);
+            }
 
 		}else if(strcmp(arguments[0], "where") == 0){
 
 			struct pathelement *path, *tmp;
             char **pathFound = NULL;
-
-			printf("Executing built-in [where]\n");
 
 			//continues if no agruments are given to to which
 	  		if (arguments[1] == NULL) {	
@@ -219,17 +187,13 @@ int main(int argc, char **argv, char **envp){
 
             pathFound = where(arguments[1], path);
 
-            if (pathFound){
-                
+            if (pathFound != NULL){
 				int index = 0;
 				while(pathFound[index] != NULL) {
-					printf("%s\n", pathFound[index]);
 		 			free(pathFound[index]);
 					index++;
             	}
-
 				free(pathFound);  // frees memory
-
             }else{
 				printf("%s: Command not found\n", arguments[1]); // prints if command is not found
 			}
@@ -269,20 +233,8 @@ int main(int argc, char **argv, char **envp){
 				cd(arguments[1]);
 			}
 		}else if (strcmp(arguments[0], "list") == 0) {
-			list(arguments);  
-		
-		    // }else if (strcmp(arguments[1], ">") == 0) {
-
-			// }else if (strcmp(arguments[1], ">&") == 0) {
-
-			// }else if (strcmp(arguments[1], ">>") == 0) {
-
-			// }else if (strcmp(arguments[1], ">>&") == 0) {
-
-			// }else if (strcmp(arguments[1], ">>&") == 0) {
-
+			list(arguments);
 		}else{
-
 			struct pathelement *path, *tmp;
 			char *cmd;
 
@@ -293,6 +245,8 @@ int main(int argc, char **argv, char **envp){
 				perror("fork error");
 		  	}else if (childPid == 0) {
 				//child
+
+				arguments[pipeIndex] = (char *) NULL;
 
 				path = get_path();
 				cmd = which(arguments[0], path);
@@ -309,10 +263,17 @@ int main(int argc, char **argv, char **envp){
 			}
 		}
 
+		close(fd[1]);
+		dup2(saved_STD_Out, 1);
+		waitpid(pid, &status, 0);
 
         nextprompt:
 		globfree(&globPaths);
 		printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
+
+		// for(int index = 0; index < argumentIndex; index++){
+		// 	printf("argument[%d]: %s\n", index, arguments[index]);
+		// }
 	}
 
 	exit(0); //exits program

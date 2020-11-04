@@ -19,13 +19,21 @@ void list(char **arguments){
 
     char *workingDirectory;
 
-    for(int index = 1; arguments[index] != NULL; index++) // print
+    for(int index = 1; arguments[index] != NULL; index++){
+        //prints all arguments, except if it hits a pipe or a file redirect.
+        //must do this to print all arguments if user inputs *.
+        if(arguments[index][0] == '|' || arguments[index][0] == '>'){
+            break;
+        }
         printf("%s\n", arguments[index]); 
+    }
 
+    //looks to see if the file is a directory, if it is it prints it.
+    //IMPORTANT: assumes this is run within your current working directory.
     for(int index = 1; arguments[index] != NULL; index++){
         workingDirectory = getcwd(NULL, 0);
 
-        strcpy(directoryName, workingDirectory); //concatinates directory name onto string
+        strcpy(directoryName, workingDirectory); //copies directory name onto string
 
         if(arguments[index][0] != '/'){ //checks if there is a / character
             strcat(directoryName, "/");  //concatinates / and the name
@@ -51,8 +59,8 @@ void list(char **arguments){
         }
     }
 
-    //just prints lists all of the files in the current directory if the second argumnt is null.
-    if(arguments[1] == NULL){
+    //just prints all of the files in the current directory if the second argumnt is null, pipe or file redirect.
+    if(arguments[1] == NULL || arguments[1][0] == '|' || arguments[1][0] == '>'){
         directory = opendir(getcwd(NULL, 0));
 
         d = readdir(directory);
@@ -64,6 +72,7 @@ void list(char **arguments){
 
             d = readdir(directory);
         }
+
     }
 
     if(directory != NULL){
