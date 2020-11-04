@@ -12,6 +12,6 @@
 
 
 void redirectOutput( char command, char file){
-	 command > file;
+	//command > file;
 
 }

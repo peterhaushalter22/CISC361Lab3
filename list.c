@@ -12,41 +12,43 @@
         void
 */
 void list(char **arguments){
-    printf("Executing built-in list\n");
 
     char directoryName[MAXLINE];
     DIR *directory; //defines DIR
     struct dirent *d; // defines dirent pointer
 
-    for(int index = 0; arguments[index] != NULL; index++) // print
-        printf("arguments[%d]: %s\n",  index,  arguments[index]); 
+    char *workingDirectory;
+
+    for(int index = 1; arguments[index] != NULL; index++) // print
+        printf("%s\n", arguments[index]); 
 
     for(int index = 1; arguments[index] != NULL; index++){
-        printf("arguments[%d]: %s",  index,  arguments[index]);
+        workingDirectory = getcwd(NULL, 0);
+
+        strcpy(directoryName, workingDirectory); //concatinates directory name onto string
 
         if(arguments[index][0] != '/'){ //checks if there is a / character
-            strcpy(directoryName, "/");  //concatinates / and the name
+            strcat(directoryName, "/");  //concatinates / and the name
         }
 
-        strcat(directoryName, arguments[index]); //concatinates directory name onto string
-        printf(("%s\n"), directoryName);
+        strcat(directoryName, arguments[index]);
 
         directory = opendir(directoryName); // sets directory
 
-        if(directory == NULL && arguments[index] != NULL){ //checks if directory was found
-            perror("Directory not found\n");
-            return;
-        }else{
+        if(directory != NULL){
 
+            printf("\n");
+            printf("%s:\n", arguments[index]);
             //prints all of the files in the directory.
             d = readdir(directory); 
             while(d != NULL){
-                printf("a: %s\n", d->d_name);
+                if(d->d_name[0] != '.' ){
+                    printf("%s\n", d->d_name);
+                }
+
                 d = readdir(directory);
             }
         }
-
-        printf("\n");
     }
 
     //just prints lists all of the files in the current directory if the second argumnt is null.
@@ -55,12 +57,19 @@ void list(char **arguments){
 
         d = readdir(directory);
         while(d != NULL){
-            printf("a: %s\n", d->d_name);
+
+            if(d->d_name[0] != '.' ){
+                printf("%s\n", d->d_name);
+            }
+
             d = readdir(directory);
         }
     }
 
-    closedir(directory);
+    if(directory != NULL){
+        closedir(directory);
+    }
+
 
 }
 

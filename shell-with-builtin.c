@@ -26,7 +26,7 @@ void sigHandler(int signalNumber){
 	if (signalNumber == SIGINT){
 		printf("\nreceived SIGINT\n");
 
-		if(childPid != NULL){
+		if(childPid != (pid_t) NULL){
 			kill(childPid, SIGKILL); 
 		}
 	}
@@ -37,7 +37,7 @@ int main(int argc, char **argv, char **envp){
 	char *arguments[MAXARGS];
 	char *ptr;
 	char prompt[16];
-	int	status;
+	int	status, fd[2];
 
 	for(int index = 0; index < MAXARGS; index++){
 		prompt[index] = '\0'; //clears prompt
@@ -54,7 +54,7 @@ int main(int argc, char **argv, char **envp){
 		}
 
 		if (buffer[strlen(buffer) - 1] == '\n'){
-			buffer[strlen(buffer) - 1] = 0; 
+			buffer[strlen(buffer) - 1] = '\0'; 
 		}
  
 
@@ -84,6 +84,93 @@ int main(int argc, char **argv, char **envp){
 			goto nextprompt;
 		}
 
+		// printf("%d\n", argumentIndex);
+		// for(int index = 0; index < argumentIndex; index++){
+		// 	printf("argument[%d]: %s\n", index, arguments[index]);
+		// }
+
+		// struct pathelement *path;
+		// char *cmd;
+
+		// int index = 0;
+		// while (arguments[index] != NULL){
+		// 	if (strcmp(arguments[index], "|&") == 0){
+
+		// 		index++;
+		// 		pipe(fd);
+
+		// 		pid = fork();
+
+		// 		if (pid < 0){
+		// 			perror("fork error");
+		// 		}else if (pid == 0){
+		// 			//child
+
+		// 			close(0);
+		// 			dup(fd[0]);
+		// 			close(fd[1]);
+
+		// 			path = get_path();
+		// 			cmd = which(arguments[index], path);
+
+		// 			//execve("/bin", &arguments[index], NULL);
+		// 			//execve("/usr/bin", &arguments[index], NULL);
+
+		// 			execve(cmd, &arguments[index], NULL);
+		// 			perror("couldn't execute command");
+		// 			exit(127);
+		// 		}else{
+		// 			close(1);
+		// 			dup(fd[1]);
+		// 			close(fd[0]);
+		// 		}
+
+		// 		//normalPipe(arguments[0]);
+		// 		break;
+		// 	}else if (strcmp(arguments[index], "|") == 0){
+		// 		pipe(fd);
+		// 		index++;
+
+		// 		pid = fork();
+
+		// 		if (pid < 0){
+		// 			perror("fork error");
+		// 		}else if (pid == 0){
+		// 			//child
+
+		// 			dup2(fd[0], 0);
+		// 			close(fd[1]);
+
+		// 			path = get_path();
+		// 			cmd = which(arguments[index], path);
+
+
+		// 			//execve("/bin", &arguments[index], NULL);
+		// 			//execve("/usr/bin", &arguments[index], NULL);
+
+		// 			printf("%s", arguments[index]);
+		// 			execve(cmd, &arguments[index], NULL);
+		// 			perror("couldn't execute command");
+		// 			exit(127);
+		// 		}else{
+		// 			dup2(fd[1],1);
+
+		// 			close(fd[0]);
+
+		// 			waitpid(pid, &status, 0);
+		// 			close(fd[1]);
+		// 			close(1);
+		// 			printf("I got here?");
+		// 			return;
+		// 		}
+
+		// 		//pipeWithError(arguments[0]);
+		// 		break;
+		// 	}
+
+		// 	index++;
+		// }
+		
 		if (strcmp(arguments[0], "exit") == 0) {
 			printf("You have exited the shell.\n");
 			return 1;
@@ -181,20 +268,20 @@ int main(int argc, char **argv, char **envp){
 			}else{
 				cd(arguments[1]);
 			}
-		}else if (strcmp(arguments[1], "list") == 0) {
+		}else if (strcmp(arguments[0], "list") == 0) {
 			list(arguments);  
 		
-		    }else if (strcmp(arguments[1], ">") == 0) {
+		    // }else if (strcmp(arguments[1], ">") == 0) {
 
-			}else if (strcmp(arguments[1], ">&") == 0) {
+			// }else if (strcmp(arguments[1], ">&") == 0) {
 
-			}else if (strcmp(arguments[1], ">>") == 0) {
+			// }else if (strcmp(arguments[1], ">>") == 0) {
 
-			}else if (strcmp(arguments[1], ">>&") == 0) {
+			// }else if (strcmp(arguments[1], ">>&") == 0) {
 
-			}else if (strcmp(arguments[1], ">>&") == 0) {
+			// }else if (strcmp(arguments[1], ">>&") == 0) {
 
-			}else{
+		}else{
 
 			struct pathelement *path, *tmp;
 			char *cmd;
@@ -215,18 +302,13 @@ int main(int argc, char **argv, char **envp){
 				exit(127);
 			}
 
-		  	/* parent */
-			if ((childPid = waitpid(childPid, &status, 0)) < 0){
+		  	//parent
+			childPid = waitpid(childPid, &status, 0);
+			if(childPid < 0){
 				perror("waitpid error");
 			}
+		}
 
-			// while (path) {
-			// 	tmp = path;
-	     	// 	path = path->next;
-	     	// 	free(tmp->element);
-		 	// 	free(tmp);
-            // }
-        }
 
         nextprompt:
 		globfree(&globPaths);
