@@ -12,15 +12,11 @@
 
 
 
-void redirectOutput( char* command, char* fileName){
-	//printf("IM here");
-	int fid = open(fileName,O_WRONLY|O_CREAT|O_TRUNC);
-    //printf("CLOSINGTIME");
-//	fid = open(“foo.txt”, O_WRONLY|O_CREAT|O_TRUNC); 
-	close(1); 
-	dup(fid); 
+void redirectAppend( char* command, char* fileName){
+	
+	int fid = open(fileName,O_RDWR | O_APPEND| S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
+	dup2(fid,1);
 	close(fid);
-    //printf("CLOSINGTIME");
     fid = open("/dev/tty", O_WRONLY);
 
 }

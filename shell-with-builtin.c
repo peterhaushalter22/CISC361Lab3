@@ -4,7 +4,7 @@ Description: This program is the main program our shell will be running on. It c
 line and executing the functions. The arguments on the comand line are put into a char * so we can access
 the arguments in each program.
 */
-
+int no_clobber = 0;
 #include <unistd.h>  //included files and libraries
 #include <stdio.h>
 #include <stdlib.h>
@@ -142,7 +142,88 @@ int main(int argc, char **argv, char **envp){
 
 			pipeIndex++;
 		}
-		
+		if(!no_clobber){
+			for(int i = 0; i<argumentIndex; i++){
+				if(!arguments[i+1]){
+					break;
+				}
+				else if (strcmp(arguments[i], ">") == 0 ) {  //redirect output to file
+					
+					printf("redirecting output ...\n");
+					redirectOutput(arguments[0],arguments[i+1]);
+					}else if (strcmp(arguments[i], ">&") == 0) { //redirect output and stderr to file
+						printf("redirecting output and stderr ...\n");
+						redirectOutput2(arguments[0],arguments[i + 1]);
+					}else if (strcmp(arguments[i], ">>") == 0) {  //append output to file
+						if(!access(arguments[i+1],F_OK)){
+							printf("appending output ...\n");
+							redirectAppend(arguments[0],arguments[i + 1]);
+						}
+						else{
+							fopen(arguments[i + 1],"a"); //creates file
+							fclose(arguments[i + 1]);
+							printf("appending output (new file) ...\n");
+							redirectAppend(arguments[0],arguments[i + 1]);
+
+						}
+					}else if (strcmp(arguments[i], ">>&") == 0) {//append output and stderr to file
+						if(!access(arguments[i+1],F_OK)){
+							printf("appending output and stderr ...\n");
+							redirectAppend2(arguments[0],arguments[i + 1]);
+						}
+						else{
+							fopen(arguments[i + 1],"a"); //creates file
+							fclose(arguments[i + 1]);
+							printf("appending output and stderr (new file) ...\n");
+							redirectAppend2(arguments[0],arguments[i + 1]);
+
+						}
+					}else if (strcmp(arguments[i], "<") == 0) { //redirect input to file
+						redirectInput( arguments[0], arguments[i+1]);
+					}
+			}
+		}
+		else if(no_clobber){
+			for(int i = 0; i<argumentIndex; i++){
+				if(!arguments[i+1]){
+					break;
+				}
+				else if (strcmp(arguments[i], ">") == 0 ) {  //redirect output to file
+					if(!access(arguments[i+1],F_OK)){
+						printf("Cannot overwrite existing files in noclobber mode 1\n");
+					}
+					else{
+						printf("File doesn't exist!\n");
+						//redirectOutput(arguments[0],arguments[i+1]);
+					}
+					}else if (strcmp(arguments[i], ">&") == 0) { //redirect output and stderr to file
+						if(!access(arguments[i+1],F_OK)){
+						printf("Cannot overwrite existing files in noclobber mode 1\n");
+					}else{
+						printf("File doesn't exist!\n");
+						//redirectOutput2(arguments[0],arguments[i + 1]);
+					}
+					}else if (strcmp(arguments[i], ">>") == 0) {  //append output to file
+						if(!access(arguments[i+1],F_OK)){
+							printf("appending output ...\n");
+							redirectAppend(arguments[0],arguments[i + 1]);
+						}
+						else{
+							printf("Cannot create new file in noclobber mode 1\n");
+						}
+					}else if (strcmp(arguments[i], ">>&") == 0) {//append output and stderr to file
+						if(!access(arguments[i+1],F_OK)){
+							printf("appending output and stderr ...\n");
+							redirectAppend2(arguments[0],arguments[i + 1]);
+						}
+						else{
+							printf("Cannot create new file in noclobber mode 1\n");
+						}
+					}else if (strcmp(arguments[i], "<") == 0) { //redirect input to file
+						redirectInput( arguments[0], arguments[i+1]);
+					}
+			}
+		}
 		if (strcmp(arguments[0], "exit") == 0) {
 			printf("You have exited the shell.\n");
 			return 1;
@@ -234,6 +315,9 @@ int main(int argc, char **argv, char **envp){
 			}
 		}else if (strcmp(arguments[0], "list") == 0) {
 			list(arguments);
+		}else if(strcmp(arguments[0], "noclobber") == 0) {
+			no_clobber = noclobber(no_clobber);
+
 		}else{
 			struct pathelement *path, *tmp;
 			char *cmd;

@@ -9,18 +9,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-
-
-
-void redirectOutput( char* command, char* fileName){
-	//printf("IM here");
+void redirectInput( char* command, char* fileName){
 	int fid = open(fileName,O_WRONLY|O_CREAT|O_TRUNC);
-    //printf("CLOSINGTIME");
-//	fid = open(“foo.txt”, O_WRONLY|O_CREAT|O_TRUNC); 
 	close(1); 
-	dup(fid); 
+	dup2(fid,0); 
 	close(fid);
-    //printf("CLOSINGTIME");
     fid = open("/dev/tty", O_WRONLY);
 
 }

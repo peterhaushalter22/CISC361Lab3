@@ -14,7 +14,12 @@ void cd(char *cd);
 void pwd();
 void killProc(char **arguments);
 int pipeCommand(char **arguments);
-
+void redirectOutput( char* command, char* fileName);
+void redirectOutput2(char* command, char* fileName);
+int noclobber(int noclobber);
+void redirectAppend( char* command, char* fileName);
+void redirectAppend2(char* command, char* fileName);
+void redirectInput( char* command, char* fileName);
 
 #define PROMPTMAX 64
 #define MAXARGS   16
