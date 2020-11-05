@@ -12,9 +12,11 @@ int no_clobber = 0;
 #include <sys/wait.h>
 #include <glob.h>
 #include <signal.h>
+#include <pthread.h>
 #include "sh.h"
 
 pid_t childPid = (int)NULL;
+linkedList *listOfUsersHead = NULL;
 /*
 	This function is a callback function that is used catch SIGINT.
 	Input:
@@ -37,7 +39,9 @@ int main(int argc, char **argv, char **envp){
 	char *arguments[MAXARGS];
 	char *ptr;
 	char prompt[16];
-	int	status, fd[2], saved_STD_Out = dup(1);
+	int	status, fd[2], saved_STD_Out = dup(1), numberOfThreads = 0;
+	pthread_t threadOne;
+	pthread_mutex_t mutex;
 
 	for(int index = 0; index < MAXARGS; index++){
 		prompt[index] = '\0'; //clears prompt
@@ -226,6 +230,14 @@ int main(int argc, char **argv, char **envp){
 		}
 		if (strcmp(arguments[0], "exit") == 0) {
 			printf("You have exited the shell.\n");
+			pthread_cancel(threadOne); 
+			pthread_join(threadOne, NULL);
+
+			// for(linkedList *temp = listOfUsersHead; temp != NULL; temp=temp->next){
+			// 	printf("%s", temp->name);
+			// 	free(temp->name);
+
+			// }
 			return 1;
 		}else if (strcmp(arguments[0], "which") == 0) {
 		  	struct pathelement *path, *tmp;
@@ -317,6 +329,66 @@ int main(int argc, char **argv, char **envp){
 			list(arguments);
 		}else if(strcmp(arguments[0], "noclobber") == 0) {
 			no_clobber = noclobber(no_clobber);
+		}else if(strcmp(arguments[0], "watchuser") == 0){
+
+			//If second argument is null goes onto next terminal prompt.
+			if(arguments[1] == NULL){
+				linkedList *temp = listOfUsersHead;
+				while(temp != NULL){
+					temp = temp->next;
+					printf("%s, ", temp->name);
+				}
+
+				printf("No user");
+				goto nextprompt;
+			}
+			
+			if(numberOfThreads == 0){
+				pthread_create(&threadOne, NULL, watchUser, NULL);
+				numberOfThreads = 1;
+			}
+
+			if(arguments[2] != NULL && strcmp(arguments[2], "off") == 0){
+
+				pthread_mutex_lock(&mutex);
+				for(linkedList *temp = listOfUsersHead; temp != NULL; temp=temp->next){
+					if(strcmp(temp->name, arguments[1]) == 0){
+						temp->isOn = OFF;
+						break;
+					}
+				}
+				pthread_mutex_unlock(&mutex);
+
+			}else{
+
+				pthread_mutex_lock(&mutex);
+
+				linkedList *newUser = malloc(sizeof(linkedList));
+				newUser->name = malloc(strlen(arguments[1]));
+				strcpy(newUser->name, arguments[1]);
+
+				printf("%s\n", newUser->name);
+
+				newUser->isOn = ON;
+				newUser->next= NULL;
+
+				
+				linkedList *temp = listOfUsersHead;
+				while(temp != NULL){
+					temp = temp->next;
+				}
+
+				temp = newUser;
+
+				printf("hiiii %s\n", temp->name);
+				// char *t = listOfUsersHead->name;
+				if(listOfUsersHead == NULL){
+					printf("weNull\n");
+				}
+				//printf("byeee %s\n", t);
+
+				pthread_mutex_unlock(&mutex);
+			}
 
 		}else{
 			struct pathelement *path, *tmp;
