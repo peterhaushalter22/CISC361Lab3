@@ -21,7 +21,7 @@ int noclobber(int noclobber);
 void redirectAppend( char* command, char* fileName);
 void redirectAppend2(char* command, char* fileName);
 void redirectInput( char* command, char* fileName);
-
+pid_t background(char** arguments, int argumentIndex);
 void *watchUser();
 
 #define OFF 0

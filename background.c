@@ -1,4 +1,4 @@
-#include <unistd.h>  //included files and libraries
+#include <unistd.h> //included files and libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,24 +6,24 @@
 #include <glob.h>
 #include <signal.h>
 #include "sh.h"
+#include <unistd.h>
+#include <sys/types.h>
+pid_t background(char **arguments, int argumentIndex)
+{
+	int * status = 0;
 
-#include<unistd.h> 
-
-void background(const char * command,char *arguments){
 	printf("In background: \n");
-	int parent = getpid();
-	int child;
-	fork();
-	if(parent != getpid()){
-		printf("Child here");
-		child = getpid();
-		
-		
-		int status = execve(command,arguments, NULL);
-		//execlp(command,arguments);
-		printf("Status: %d\n",status);
-        //kill(child,9);
-		
+	pid_t child = fork();
+	if (child == 0)
+	{
+		struct pathelement *path = get_path();
+		char *cmd = which(arguments[0], path);
+		execve(cmd, arguments, NULL);
+		execve(arguments[0], arguments, NULL);
+		perror("Background Process Failed");
 	}
-	
+	else{
+		waitpid(-1, &status, 0);
+	}
+	return child;
 }

@@ -146,6 +146,7 @@ int main(int argc, char **argv, char **envp){
 
 			pipeIndex++;
 		}
+		
 		if(!no_clobber){
 			for(int i = 0; i<argumentIndex; i++){
 				if(!arguments[i+1]){
@@ -239,6 +240,14 @@ int main(int argc, char **argv, char **envp){
 
 			// }
 			return 1;
+		}else if(strcmp(arguments[argumentIndex-1], "&") == 0){
+			//printf("Im here");
+			arguments[argumentIndex-1] = NULL;
+			//if(strcmp(arguments[argumentIndex][strlen(arguments[argumentIndex - 1])], "&") == 0){
+		
+			pid_t tmp2 = background(arguments, argumentIndex);
+			//waitpid(tmp2, &status, WNOHANG);
+
 		}else if (strcmp(arguments[0], "which") == 0) {
 		  	struct pathelement *path, *tmp;
             char *cmd;
