@@ -39,7 +39,8 @@ int main(int argc, char **argv, char **envp){
 	char *arguments[MAXARGS];
 	char *ptr;
 	char prompt[16];
-	int	status, fd[2], saved_STD_Out = dup(1), numberOfThreads = 0;
+	int	status, fd[2], saved_STD_Out = dup(1), saved_ERR_Out = dup(2);
+	int numberOfThreads = 0;
 	pthread_t threadOne;
 	pthread_mutex_t mutex;
 
@@ -93,7 +94,7 @@ int main(int argc, char **argv, char **envp){
 
 		int pipeIndex = 0;
 		while (arguments[pipeIndex] != NULL){
-			if (strcmp(arguments[pipeIndex], "|&") == 0){
+			if (arguments[pipeIndex][0] == '|'){
 
 				pipe(fd);
 				pid = fork();
@@ -102,7 +103,8 @@ int main(int argc, char **argv, char **envp){
 					perror("fork error");
 				}else if (pid == 0){
 					//child
-					dup2(fd[0], 0);
+					close(0);
+					dup(fd[0]);
 					close(fd[1]);
 
 					path = get_path();
@@ -112,41 +114,21 @@ int main(int argc, char **argv, char **envp){
 					exit(127);
 				}else{
 					//parent
-					dup2(fd[1],1);
-					dup2(fd[1],2);
+					close(1);
+					dup(fd[1]);
 					close(fd[0]);
+
+					if(strcmp(arguments[pipeIndex], "|&") == 0){
+						close(2);
+						dup(fd[1]);
+					}
 				}
-
-				break;
-			}else if (strcmp(arguments[pipeIndex], "|") == 0){
-
-				pipe(fd);
-				pid = fork();
-
-				if (pid < 0){
-					perror("fork error");
-				}else if (pid == 0){
-					//child
-					dup2(fd[0], 0);
-					close(fd[1]);
-
-					path = get_path();
-					cmd = which(arguments[pipeIndex + 1], path);
-					execve(cmd, &arguments[pipeIndex + 1], NULL);
-					perror("couldn't execute command");
-					exit(127);
-				}else{
-					//parent
-					dup2(fd[1],1);
-					close(fd[0]);
-				}
-
 				break;
 			}
 
 			pipeIndex++;
 		}
-		
+
 		if(!no_clobber){
 			for(int i = 0; i<argumentIndex; i++){
 				if(!arguments[i+1]){
@@ -166,7 +148,7 @@ int main(int argc, char **argv, char **envp){
 						}
 						else{
 							fopen(arguments[i + 1],"a"); //creates file
-							fclose(arguments[i + 1]);
+							fclose((FILE *) arguments[i + 1]);
 							printf("appending output (new file) ...\n");
 							redirectAppend(arguments[0],arguments[i + 1]);
 
@@ -178,7 +160,7 @@ int main(int argc, char **argv, char **envp){
 						}
 						else{
 							fopen(arguments[i + 1],"a"); //creates file
-							fclose(arguments[i + 1]);
+							fclose((FILE *) arguments[i + 1]);
 							printf("appending output and stderr (new file) ...\n");
 							redirectAppend2(arguments[0],arguments[i + 1]);
 
@@ -342,12 +324,6 @@ int main(int argc, char **argv, char **envp){
 
 			//If second argument is null goes onto next terminal prompt.
 			if(arguments[1] == NULL){
-				linkedList *temp = listOfUsersHead;
-				while(temp != NULL){
-					temp = temp->next;
-					printf("%s, ", temp->name);
-				}
-
 				printf("No user");
 				goto nextprompt;
 			}
@@ -363,7 +339,7 @@ int main(int argc, char **argv, char **envp){
 				for(linkedList *temp = listOfUsersHead; temp != NULL; temp=temp->next){
 					if(strcmp(temp->name, arguments[1]) == 0){
 						temp->isOn = OFF;
-						break;
+						goto nextprompt;
 					}
 				}
 				pthread_mutex_unlock(&mutex);
@@ -372,29 +348,30 @@ int main(int argc, char **argv, char **envp){
 
 				pthread_mutex_lock(&mutex);
 
+				for(linkedList *temp = listOfUsersHead; temp != NULL; temp=temp->next){
+					if(strcmp(temp->name, arguments[1]) == 0){
+						temp->isOn = ON;
+						goto nextprompt;
+					}
+				}
+
 				linkedList *newUser = malloc(sizeof(linkedList));
 				newUser->name = malloc(strlen(arguments[1]));
 				strcpy(newUser->name, arguments[1]);
 
-				printf("%s\n", newUser->name);
-
 				newUser->isOn = ON;
 				newUser->next= NULL;
 
-				
-				linkedList *temp = listOfUsersHead;
-				while(temp != NULL){
-					temp = temp->next;
-				}
-
-				temp = newUser;
-
-				printf("hiiii %s\n", temp->name);
-				// char *t = listOfUsersHead->name;
 				if(listOfUsersHead == NULL){
-					printf("weNull\n");
+					listOfUsersHead = newUser;
+				}else{
+					linkedList *temp = listOfUsersHead;
+					while(temp->next != NULL){
+						temp = temp->next;
+					}
+					temp->next = newUser;
+
 				}
-				//printf("byeee %s\n", t);
 
 				pthread_mutex_unlock(&mutex);
 			}
@@ -429,7 +406,11 @@ int main(int argc, char **argv, char **envp){
 		}
 
 		close(fd[1]);
-		dup2(saved_STD_Out, 1);
+		close(1);
+		dup(saved_STD_Out);
+
+		close(2);
+		dup(saved_ERR_Out);
 		waitpid(pid, &status, 0);
 
         nextprompt:

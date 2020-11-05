@@ -10,7 +10,7 @@
 #include <sys/types.h>
 pid_t background(char **arguments, int argumentIndex)
 {
-	int * status = 0;
+	int status;
 
 	printf("In background: \n");
 	pid_t child = fork();
