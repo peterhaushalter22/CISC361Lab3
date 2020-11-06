@@ -1,98 +1,32 @@
 #include "sh.h"
 #include <unistd.h>
 
-int pipeCommand(char **arguments){
-
-    // int index = 0;
-    // while (arguments[index] != NULL){
-    //     if (strcmp(arguments[index], "|&") == 0){
-    //         //normalPipe(arguments[0]);
-
-    //         pipe(fd);
-
-    //         pid = fork();
-
-    //         if (pid < 0){
-    //             perror("fork error");
-    //         }else if (pid == 0){
-    //             //child
-
-    //             close(1);
-    //             dup(fd[1]);
-
-    //             execvp(arguments[0], arguments[0]);
-    //             perror("couldn't execute command");
-    //             exit(127);
-    //         }
-
-    //         break;
-    //     }else if (strcmp(arguments[1], "|") == 0){
-    //         pipe(fd);
-
-    //         pid = fork();
-
-    //         if (pid < 0){
-    //             perror("fork error");
-    //         }else if (pid == 0){
-    //             //child
-
-    //             close(1);
-    //             dup(fd[1]);
-
-    //             execvp(arguments[0], arguments[0]);
-    //             perror("couldn't execute command");
-    //             exit(127);
-    //         }
-
-    //         //pipeWithError(arguments[0]);
-    //         break;
-    //     }
-
-    //     index++;
-    // }
-
-    // return index;
-
-    return 1;
-}
-
-void normalPipe(char *command)
+void pipeCommand(char **arguments, int pipeIndex, int *fd)
 {
-    // pid = fork();
-    // int fd[2];
+    pipe(fd);
+    pid = fork();
 
-    // if (pid < 0)
-    // {
-    //     perror("fork error");
-    // }
-    // else if (pid == 0)
-    // {
-    //     //child
+    if (pid < 0){
+        perror("fork error");
+    }else if (pid == 0){
+        //child
+        close(0);
+        dup(fd[0]);
+        close(fd[1]);
 
-    //     close(1);
-    //     dup(fd[1]);
+        execvp(arguments[pipeIndex + 1], &arguments[pipeIndex + 1]);
+        perror("couldn't execute command");
+        exit(127);
+    }else{
+        //parent
+        close(1);
+        dup(fd[1]);
+        close(fd[0]);
 
-    //     execvp(command[0], command);
-    //     perror("couldn't execute command");
-    //     exit(127);
-    // }
-}
-
-void pipeWithError(char *command)
-{
-    // pid = fork();
-    // int fd[2];
-
-    // if (pid < 0)
-    // {
-    //     perror("fork error");
-    // }
-    // else if (pid == 0)
-    // {
-    //     //child
-
-    //     execvp(command[0], command);
-    //     perror("couldn't execute command");
-    //     exit(127);
-    // }
+        if (strcmp(arguments[pipeIndex], "|&") == 0)
+        {
+            close(2);
+            dup(fd[1]);
+        }
+    }
 }

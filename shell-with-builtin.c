@@ -17,6 +17,7 @@ int no_clobber = 0;
 
 pid_t childPid = (int)NULL;
 linkedList *listOfUsersHead = NULL;
+volatile int caughtSIGCHILD, caughtSIGINT;
 /*
 	This function is a callback function that is used catch SIGINT.
 	Input:
@@ -24,14 +25,13 @@ linkedList *listOfUsersHead = NULL;
 
 */
 void sigHandler(int signalNumber){ 
-	printf("received %d\n", signalNumber);
-	if (signalNumber == SIGINT){
-		printf("\nreceived SIGINT\n");
+	//Warning: Do not make signal handler complex.
+	caughtSIGINT = 1;
+}
 
-		if(childPid != (pid_t) NULL){
-			kill(childPid, SIGKILL); 
-		}
-	}
+void sigChildHandler(int signalNumber){
+	//Warning: Do not make signal handler complex.
+	caughtSIGCHILD = 1;
 }
 
 int main(int argc, char **argv, char **envp){
@@ -39,19 +39,24 @@ int main(int argc, char **argv, char **envp){
 	char *arguments[MAXARGS];
 	char *ptr;
 	char prompt[16];
-	int	status, fd[2], saved_STD_Out = dup(1), saved_ERR_Out = dup(2);
+	int	status, isPiped = OFF, isBlockingProcess = OFF, fd[2];
+	int SAVED_STD_OUT = dup(1), SAVED_STD_ERR = dup(2);
 	int numberOfThreads = 0;
 	pthread_t threadOne;
 	pthread_mutex_t mutex;
 
 	for(int index = 0; index < MAXARGS; index++){
-		prompt[index] = '\0'; //clears prompt
+		prompt[index] = '\0';
 	}
 
 	signal(SIGINT, sigHandler);
+	signal(SIGCHLD, sigChildHandler);
 
-	printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
-	while (fgets(buffer, MAXLINE, stdin) != NULL) {
+	while (1) {
+
+		printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
+
+		fgets(buffer, MAXLINE, stdin);
 
 		//continues if user just enters "\n".
 		if (strlen(buffer) == 1 && buffer[strlen(buffer) - 1] == '\n'){
@@ -95,37 +100,10 @@ int main(int argc, char **argv, char **envp){
 		int pipeIndex = 0;
 		while (arguments[pipeIndex] != NULL){
 			if (arguments[pipeIndex][0] == '|'){
-
-				pipe(fd);
-				pid = fork();
-
-				if (pid < 0){
-					perror("fork error");
-				}else if (pid == 0){
-					//child
-					close(0);
-					dup(fd[0]);
-					close(fd[1]);
-
-					path = get_path();
-					cmd = which(arguments[pipeIndex + 1], path);
-					execve(cmd, &arguments[pipeIndex + 1], NULL);
-					perror("couldn't execute command");
-					exit(127);
-				}else{
-					//parent
-					close(1);
-					dup(fd[1]);
-					close(fd[0]);
-
-					if(strcmp(arguments[pipeIndex], "|&") == 0){
-						close(2);
-						dup(fd[1]);
-					}
-				}
+				isPiped = ON;
+				pipeCommand(arguments, pipeIndex, (int *) fd);
 				break;
 			}
-
 			pipeIndex++;
 		}
 
@@ -227,8 +205,16 @@ int main(int argc, char **argv, char **envp){
 			arguments[argumentIndex-1] = NULL;
 			//if(strcmp(arguments[argumentIndex][strlen(arguments[argumentIndex - 1])], "&") == 0){
 		
-			pid_t tmp2 = background(arguments, argumentIndex);
-			//waitpid(tmp2, &status, WNOHANG);
+			pid_t child = fork();
+			if (child == 0)
+			{
+				struct pathelement *path = get_path();
+				char *cmd = which(arguments[0], path);
+				//execve(cmd, arguments, NULL);
+				//execve(arguments[0], arguments, NULL);
+				execvp(arguments[0], arguments);
+				perror("Background Process Failed");
+			}
 
 		}else if (strcmp(arguments[0], "which") == 0) {
 		  	struct pathelement *path, *tmp;
@@ -395,27 +381,42 @@ int main(int argc, char **argv, char **envp){
 				execve(cmd, arguments, NULL);
 				execve(arguments[0], arguments, NULL);
 				perror("couldn't execute command");
-				exit(127);
+				exit(EXIT_FAILURE);
 			}
 
-		  	//parent
-			childPid = waitpid(childPid, &status, 0);
-			if(childPid < 0){
-				perror("waitpid error");
-			}
+			waitpid(0, NULL, 0);
 		}
 
-		close(fd[1]);
-		close(1);
-		dup(saved_STD_Out);
+		//must close pipe and initalize standard output and error to terminal.
+		//must also be on the bottom as it needs to wait for builtin commands.
+		if(isPiped == ON){
+			close(fd[1]);
+			close(1);
+			dup(SAVED_STD_OUT);
 
-		close(2);
-		dup(saved_ERR_Out);
-		waitpid(pid, &status, 0);
+			close(2);
+			dup(SAVED_STD_ERR);
+			isPiped = OFF;
+
+			waitpid(0, NULL, 0);
+		}
+
+		if(caughtSIGCHILD == 1){
+	 		//Use a non-blocking call (WNOHANG) to be sure this signal handler will not
+			//block if a child was cleaned up in another part of the program.
+			//This will catch background proceses.
+			while (waitpid(0, NULL, WNOHANG) > 0) {
+			}
+			caughtSIGCHILD = 0;
+		}
+
+		if(caughtSIGINT == 1){
+			caughtSIGINT = 0;
+		}
 
         nextprompt:
 		globfree(&globPaths);
-		printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
+		// printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
 
 		// for(int index = 0; index < argumentIndex; index++){
 		// 	printf("argument[%d]: %s\n", index, arguments[index]);

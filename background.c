@@ -22,8 +22,5 @@ pid_t background(char **arguments, int argumentIndex)
 		execve(arguments[0], arguments, NULL);
 		perror("Background Process Failed");
 	}
-	else{
-		waitpid(-1, &status, 0);
-	}
 	return child;
 }

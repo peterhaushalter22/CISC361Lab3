@@ -14,7 +14,7 @@ void setEnvironment(char ** environment, char **arguments);
 void cd(char *cd);
 void pwd();
 void killProc(char **arguments);
-int pipeCommand(char **arguments);
+void pipeCommand(char **arguments, int pipeIndex, int *fd);
 void redirectOutput( char* command, char* fileName);
 void redirectOutput2(char* command, char* fileName);
 int noclobber(int noclobber);
