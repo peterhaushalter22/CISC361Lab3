@@ -25,9 +25,8 @@ volatile int caughtSIGCHILD, caughtSIGINT;
 
 */
 void childSigHandler(int signalNumber){
-	while (waitpid(getpid(), NULL, WNOHANG) > 0) {		
-	}	
-	//printf("\n");
+	//Warning: Do not make signal handler complex.
+	caughtSIGCHILD = 1;
 }
 
 void sigHandler(int signalNumber){ 
@@ -58,6 +57,8 @@ int main(int argc, char **argv, char **envp){
 	signal(SIGINT, sigHandler);
 	signal(SIGCHLD, childSigHandler);
 
+	while(1){
+		printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
 		fgets(buffer, MAXLINE, stdin);
 
 		//continues if user just enters "\n".
@@ -418,7 +419,6 @@ int main(int argc, char **argv, char **envp){
 
         nextprompt:
 		globfree(&globPaths);
-		// printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
 
 		// for(int index = 0; index < argumentIndex; index++){
 		// 	printf("argument[%d]: %s\n", index, arguments[index]);
