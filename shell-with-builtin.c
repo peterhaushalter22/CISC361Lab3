@@ -23,6 +23,12 @@ linkedList *listOfUsersHead = NULL;
 		int signalNumber - The kill signal number.
 
 */
+void childSigHandler(int signalNumber){
+	while (waitpid(getpid(), NULL, WNOHANG) > 0) {		
+	}	
+	//printf("\n");
+}
+
 void sigHandler(int signalNumber){ 
 	printf("received %d\n", signalNumber);
 	if (signalNumber == SIGINT){
@@ -43,12 +49,19 @@ int main(int argc, char **argv, char **envp){
 	int numberOfThreads = 0;
 	pthread_t threadOne;
 	pthread_mutex_t mutex;
-
+	
+	while (tcgetpgrp(STDIN_FILENO) != getpgrp()){				
+		kill(getpid(), SIGTTIN);
+	}
+	setpgid(getpid(),getpid());
+    tcsetpgrp(STDIN_FILENO, getpgrp());
+	
 	for(int index = 0; index < MAXARGS; index++){
 		prompt[index] = '\0'; //clears prompt
 	}
 
 	signal(SIGINT, sigHandler);
+	signal(SIGCHLD, childSigHandler);
 
 	printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
 	while (fgets(buffer, MAXLINE, stdin) != NULL) {
@@ -223,13 +236,9 @@ int main(int argc, char **argv, char **envp){
 			// }
 			return 1;
 		}else if(strcmp(arguments[argumentIndex-1], "&") == 0){
-			//printf("Im here");
-			arguments[argumentIndex-1] = NULL;
-			//if(strcmp(arguments[argumentIndex][strlen(arguments[argumentIndex - 1])], "&") == 0){
-		
+			//waitpid(0, &status, WNOHANG);
 			pid_t tmp2 = background(arguments, argumentIndex);
-			//waitpid(tmp2, &status, WNOHANG);
-
+			printf("PARENT HERE");
 		}else if (strcmp(arguments[0], "which") == 0) {
 		  	struct pathelement *path, *tmp;
             char *cmd;
