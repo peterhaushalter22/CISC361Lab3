@@ -24,6 +24,12 @@ volatile int caughtSIGCHILD, caughtSIGINT;
 		int signalNumber - The kill signal number.
 
 */
+void childSigHandler(int signalNumber){
+	while (waitpid(getpid(), NULL, WNOHANG) > 0) {		
+	}	
+	//printf("\n");
+}
+
 void sigHandler(int signalNumber){ 
 	//Warning: Do not make signal handler complex.
 	caughtSIGINT = 1;
@@ -44,17 +50,13 @@ int main(int argc, char **argv, char **envp){
 	int numberOfThreads = 0;
 	pthread_t threadOne;
 	pthread_mutex_t mutex;
-
+	
 	for(int index = 0; index < MAXARGS; index++){
 		prompt[index] = '\0';
 	}
 
 	signal(SIGINT, sigHandler);
-	signal(SIGCHLD, sigChildHandler);
-
-	while (1) {
-
-		printf("%s [%s]>> ", prompt, getcwd(NULL, 0));
+	signal(SIGCHLD, childSigHandler);
 
 		fgets(buffer, MAXLINE, stdin);
 
@@ -423,5 +425,5 @@ int main(int argc, char **argv, char **envp){
 		// }
 	}
 
-	exit(0); //exits program
+	exit(EXIT_SUCCESS); //exits program
 }
