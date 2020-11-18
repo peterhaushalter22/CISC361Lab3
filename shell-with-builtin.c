@@ -14,6 +14,7 @@ int no_clobber = 0;
 #include <signal.h>
 #include <pthread.h>
 #include "sh.h"
+#include "thread.h"
 
 pid_t childPid = (int)NULL;
 linkedList *listOfUsersHead = NULL;
@@ -288,6 +289,10 @@ int main(int argc, char **argv, char **envp){
 			printenv(envp, argumentIndex, arguments);
 		}else if (strcmp(arguments[0], "setEnviroment") == 0) {
 			setEnvironment(envp, arguments);
+		}else if (strcmp(arguments[0], "t_init") == 0) {
+			t_init();
+		}else if (strcmp(arguments[0], "t_shutdown") == 0) {
+			t_shutdown();
 		}else if(strcmp(arguments[0], "prompt") == 0){
 			if(arguments[1] == NULL){
 				printf("Retype a new prompt\n");
