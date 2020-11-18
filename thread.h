@@ -8,7 +8,8 @@
 void t_init(void);
 void t_shutdown(void);
 int t_create(void (*func)(int), int thr_id, int pri, int ready_index);
-
+void t_terminate(void);
+void t_yield(void);
 struct tcb  //structure
 {
     int thread_id;
