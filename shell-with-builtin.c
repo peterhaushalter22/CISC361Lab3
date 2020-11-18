@@ -5,6 +5,7 @@ line and executing the functions. The arguments on the comand line are put into 
 the arguments in each program.
 */
 int no_clobber = 0;
+int ready_index, running_index = 0;
 #include <unistd.h>  //included files and libraries
 #include <stdio.h>
 #include <stdlib.h>
@@ -293,6 +294,10 @@ int main(int argc, char **argv, char **envp){
 			t_init();
 		}else if (strcmp(arguments[0], "t_shutdown") == 0) {
 			t_shutdown();
+		}else if (strcmp(arguments[0], "t_create") == 0) {
+			//t_create();
+		}else if (strcmp(arguments[0], "t_terminate") == 0) {
+			//t_terminate();
 		}else if(strcmp(arguments[0], "prompt") == 0){
 			if(arguments[1] == NULL){
 				printf("Retype a new prompt\n");

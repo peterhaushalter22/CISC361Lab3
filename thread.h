@@ -7,7 +7,7 @@
 //Definitions
 void t_init(void);
 void t_shutdown(void);
-int t_create(void (*func)(int), int thr_id, int pri);
+int t_create(void (*func)(int), int thr_id, int pri, int ready_index);
 
 struct tcb  //structure
 {
@@ -18,6 +18,6 @@ struct tcb  //structure
 };
 
 typedef struct tcb tcb;
-
+//int ready_index, running_index = 0;
 tcb *running;
 tcb *ready;
